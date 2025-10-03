@@ -1,27 +1,68 @@
 version: '3.8'
-services:
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.client
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
 
+services:
+  # Backend service
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.server
-    container_name: backend
+      context: https://github.com/efnushtaev/portainer-demo-server.git#main
+    container_name: my-app-backend
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - PORT=3001
-    # Добавляем healthcheck для мониторинга состояния
+      - DATABASE_URL=your_database_url
+      - API_PORT=3000
+    expose:
+      - "3000"  # Открываем порт только для внутренней сети Docker
+    networks:
+      - fullstack-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/getTimestamp"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"] # Или wget, или node-скрипт
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
+
+  # Frontend service (только сборка статики)
+  frontend:
+    build:
+      context: https://github.com/efnushtaev/portainer-demo-client.git#main
+    container_name: my-app-frontend-builder
+    restart: "no"  # Этот контейнер не должен перезапускаться
+    networks:
+      - fullstack-network
+    # Не публикуем порты, контейнер используется только для сборки
+
+  # Nginx reverse proxy
+  nginx:
+    build:
+      context: .
+    container_name: my-app-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS (если добавите SSL)
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    volumes:
+      # Монтируем статику из фронтенда в nginx
+      - frontend-static:/usr/share/nginx/html:ro
+    networks:
+      - fullstack-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Volumes для хранения статики фронтенда
+volumes:
+  frontend-static:
+    driver: local
+
+# Сеть для коммуникации между сервисами
+networks:
+  fullstack-network:
+    driver: bridge
