@@ -4,19 +4,19 @@ services:
   # Backend service
   backend:
     build:
-      context: https://github.com/efnushtaev/portainer-demo-server.git#main
+      context: https://github.com/efnushtaev/portainer-demo-server.git
     container_name: my-app-backend
     restart: unless-stopped
     environment:
       - NODE_ENV=production
       - DATABASE_URL=your_database_url
-      - API_PORT=3000
+      - API_PORT=3001
     expose:
-      - "3000"  # Открываем порт только для внутренней сети Docker
+      - "3001"  # Открываем порт только для внутренней сети Docker
     networks:
       - fullstack-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"] # Или wget, или node-скрипт
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"] # Или wget, или node-скрипт
       interval: 30s
       timeout: 10s
       retries: 3
@@ -25,8 +25,9 @@ services:
   # Frontend service (только сборка статики)
   frontend:
     build:
-      context: https://github.com/efnushtaev/portainer-demo-client.git#main
+      context: https://github.com/efnushtaev/portainer-demo-client.git
     container_name: my-app-frontend-builder
+    image: portainer-demo-docker-compose-frontend  
     restart: "no"  # Этот контейнер не должен перезапускаться
     networks:
       - fullstack-network
@@ -42,15 +43,13 @@ services:
       - "80:80"      # HTTP
       - "443:443"    # HTTPS (если добавите SSL)
     depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_started
-    volumes:
-      # Монтируем статику из фронтенда в nginx
-      - frontend-static:/usr/share/nginx/html:ro
+      - backend
+      - frontend
     networks:
       - fullstack-network
+    # volumes:
+      # Монтируем статику из фронтенда в nginx
+      # - frontend-static:/usr/share/nginx/html:ro
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
@@ -58,9 +57,9 @@ services:
       retries: 3
 
 # Volumes для хранения статики фронтенда
-volumes:
-  frontend-static:
-    driver: local
+# volumes:
+  # frontend-static:
+    # driver: local
 
 # Сеть для коммуникации между сервисами
 networks:
