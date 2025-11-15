@@ -11,6 +11,13 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=your_database_url
       - API_PORT=3001
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=users_db
+      - DB_USER=app_user
+      - DB_PASSWORD=secure_password
+    depends_on:
+      - mysql
     expose:
       - "3001"  # Открываем порт только для внутренней сети Docker
     networks:
@@ -55,6 +62,19 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  mysql:
+    image: mysql:8.0
+    container_name: portainer_mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=users_db
+      - MYSQL_USER=app_user
+      - MYSQL_PASSWORD=secure_password
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/initdb:/docker-entrypoint-initdb.d:ro
 
 # Volumes для хранения статики фронтенда
 # volumes:
