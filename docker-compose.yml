@@ -11,7 +11,7 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=your_database_url
       - API_PORT=3001
-      - DB_HOST=mysqldb
+      - DB_HOST=mysql
       - DB_PORT=3306
       - DB_DATABASE=users_db
       - DB_USER=app_user
@@ -23,11 +23,12 @@ services:
     networks:
       - fullstack-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"] # Или wget, или node-скрипт
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
+
 
   # Frontend service (только сборка статики)
   frontend:
@@ -75,6 +76,16 @@ services:
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/initdb:/docker-entrypoint-initdb.d:ro
+    networks:
+      - fullstack-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+
 
 # Volumes для хранения статики фронтенда
 # volumes:
