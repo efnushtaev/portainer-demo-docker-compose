@@ -1,7 +1,8 @@
--- ...existing code...
+-- Убедимся, что используем правильную БД
 CREATE DATABASE IF NOT EXISTS `users_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `users_db`;
 
+-- Создаем таблицу если не существует
 CREATE TABLE IF NOT EXISTS `users` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
@@ -10,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- на случай, если пользователь не создан через переменные окружения
-CREATE USER IF NOT EXISTS 'app_user'@'%' IDENTIFIED BY 'secure_password';
-GRANT ALL PRIVILEGES ON `users_db`.* TO 'app_user'@'%';
-FLUSH PRIVILEGES;
+-- УДАЛИТЕ создание пользователя - он уже создан через environment variables
+-- CREATE USER IF NOT EXISTS 'app_user'@'%' IDENTIFIED BY 'secure_password';
+-- GRANT ALL PRIVILEGES ON `users_db`.* TO 'app_user'@'%';
+-- FLUSH PRIVILEGES;
