@@ -74,11 +74,11 @@ services:
       - MYSQL_USER=app_user
       - MYSQL_PASSWORD=secure_password
     volumes:
-      - mysql_data:/var/lib/mysql
-      - mysql_init:/docker-entrypoint-initdb.d:ro
+      # - mysql_data:/var/lib/mysql
+      # - mysql_init:/docker-entrypoint-initdb.d:ro
       # Для локального
-      # - ./mysql/data:/var/lib/mysql
-      # - ./mysql/initdb:/docker-entrypoint-initdb.d:ro
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/initdb:/docker-entrypoint-initdb.d:ro
     networks:
       - fullstack-network
     healthcheck:
@@ -88,11 +88,11 @@ services:
       retries: 5
       start_period: 30s
 
-volumes:
-  mysql_data:
-    driver: local
-  mysql_init:
-    driver: local
+# volumes:
+#   mysql_data:
+#     driver: local
+#   mysql_init:
+#     driver: local
 
 
 
